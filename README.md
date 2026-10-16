@@ -98,6 +98,8 @@ dsh plugin --profile web add @dsh-unified/dsh-plugin
 4. 核对渠道列表：原 `connect-auth/` 下的凭据会**直接生效**，无需重新登录；只有扫码写入的 `.workbuddy<N>-auth.json` 也会被识别。
 5. 确认无误后再删除旧插件残留文件。
 
+完整的可照做清单（含备份、停服、验收、排错与回退）见 [REPLACEMENT.md](REPLACEMENT.md)。
+
 ### 安装验收清单（已在隔离 profile 执行一次，见 VALIDATION.md）
 
 - 插件管理器显示 `@dsh-unified/dsh-plugin`，宿主无依赖解析/激活失败；不要只检查插件清单是否存在。
