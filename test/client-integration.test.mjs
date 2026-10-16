@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
 import test from 'node:test'
 import vm from 'node:vm'
 
@@ -30,6 +31,15 @@ function loadClient({ primitives = true } = {}) {
   })
   return { registration, exports, styles, required }
 }
+
+test('committed browser bundle matches its sources', () => {
+  // lib/client.bundle.js is a generated artifact that ships in the tarball; the
+  // installer does not run prepack and the host runs no build scripts, so a stale
+  // bundle would ship silently. Rebuild and require the file to be identical.
+  const before = read(pkg.exports['./client'])
+  execFileSync(process.execPath, ['scripts/build-client.mjs'], { cwd: new URL('../', import.meta.url) })
+  assert.equal(read(pkg.exports['./client']), before, 'run `pnpm build:client` and commit the result')
+})
 
 test('manifest declares the host-discovered web client and its externals', () => {
   assert.equal(pkg.dsh.client.platform, 'web')

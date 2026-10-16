@@ -34,6 +34,10 @@ Found only by installing into a real host, not by the offline suite:
 - `dsh.client.inject` listed Cordis service names where the host expects package names for graph preloading. Fixed to the renderer/locale/session-controller package IDs; the client's own `exports.inject` keeps the service names.
 - `antigravityClientSecret` was the only non-volatile Config field, and the full config object is written through `settings.update()`, which rejects non-volatile paths. Saving settings would have failed. Field is now volatile.
 - peerDependencies moved from 0.1.7-rc.2 to 0.2.0-rc.2 to match the installed host.
+- The channel panel's configuration card was registered only on `settings.plugin.item`. DSH 0.2.0-rc.2 removed that seat entirely (0 registrations and 0 render sites in the shipped host packages), so the card could never appear. It now registers on the list-typed `plugins.detail.section` and filters by the page subject, so it shows on this plugin's own pages and returns null elsewhere.
+- Deliberately did NOT use `plugins.bundle.config` for that card: it is a keyed seat keyed by package name, the subscriptions card already owns this package's key, and a later registrant replaces the earlier one — using it would have hidden the subscriptions UI.
+- Also verified the subscription card's own seats do exist and are rendered by the host: `plugins.item` (the Plugins page renders it as a card and dispatches by entry id), `plugins.bundle.config`, `plugins.row.config`, plus `conversation.session.header.actions`, `conversation.input.right` and `sidebar.footer.action`.
+- Reinstalling a tarball with an unchanged version number made the installer report "Already up to date" without replacing files; the test profile needed an explicit remove first. Relevant when validating local builds.
 
 Isolated acceptance (`DSH_HOME` and profile kept outside the real harness home; no real credentials):
 
@@ -42,6 +46,7 @@ Isolated acceptance (`DSH_HOME` and profile kept outside the real harness home; 
 - `/plugins/dsh-unified/status|settings` and `/dsh-subscriptions/health|config|status` all 200; Zen reported signed in without credentials.
 - Config GET/PUT with revision succeeded, sensitive values echo masked, and the write survived a restart.
 - A deprecated-format `cordis.patch.yml` in the host's own profile (from an earlier unrelated plugin) was left untouched.
+- Verified against the installed 0.2.0-rc.2 host packages, not just documentation: which seats this plugin registers, which of them the host actually renders, and the `plugins.detail.section` subject filter behaviour.
 
 Tests cover the actual AccountStore -> adapter manager -> registered adapter path, model discovery, text/usage streaming, real tool schemas, streamed tool arguments, tool-result continuation, 429 cooldown/recovery, zero anonymous credential calls, client factory/seat disposal, settings/updater contracts and entry dependency resolution. Test homes are temporary, and upstream responses are mocked.
 

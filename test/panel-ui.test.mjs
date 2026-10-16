@@ -59,11 +59,42 @@ test('loader factory retains public contract and both slot contributions', () =>
   const h = harness()
   assert.equal(h.plugin.name, 'dsh-unified-panel-client')
   assert.deepEqual(Array.from(h.plugin.inject), ['slots', 'locale'])
-  assert.deepEqual(h.registrations.map(r => r.meta.name), ['sidebar.footer.action', 'settings.plugin.item'])
+  // The settings card must be registered on a seat the host actually renders.
+  // DSH 0.2 removed `settings.plugin.item` entirely, so the hub also registers on
+  // the list-typed `plugins.detail.section` and filters by subject itself. It must
+  // NOT use the keyed `plugins.bundle.config`: the subscription card owns that key
+  // and a later registrant replaces it, which would hide the subscriptions UI.
+  assert.deepEqual(h.registrations.map(r => r.meta.name), ['sidebar.footer.action', 'plugins.detail.section', 'settings.plugin.item'])
+  assert.equal(h.registrations.find(r => r.meta.name === 'plugins.detail.section').meta.id, 'dsh-unified-hub')
+  assert.equal(h.registrations.find(r => r.meta.name === 'settings.plugin.item').meta.key, 'dsh-unified')
+  assert.ok(!h.registrations.some(r => r.meta.name === 'plugins.bundle.config'), 'must not steal the subscriptions bundle key')
   assert.deepEqual(Object.keys(h.plugin.__ui.zh).sort(), Object.keys(h.plugin.__ui.en).sort())
   assert.equal(h.disposers.length, 2, 'both slot injections belong to host lifecycle effects')
   h.disposers.forEach(dispose => dispose())
-  assert.deepEqual(h.disposed, ['sidebar.footer.action', 'settings.plugin.item'])
+  assert.deepEqual(h.disposed, ['sidebar.footer.action', 'plugins.detail.section', 'settings.plugin.item'])
+})
+
+test('detail-section contribution renders only for this package and plugin entry', () => {
+  const h = harness()
+  const Section = h.registrations.find(r => r.meta.name === 'plugins.detail.section').component
+  // The registered value is the error-boundary wrapper; the subject filter lives in
+  // the inner component, so reach through one element.
+  const renderInner = (subject) => {
+    const wrapper = Section({ t: h.t, subject })
+    const [inner] = wrapper.props.children
+    return inner.type(inner.props)
+  }
+  // list-typed seat: a contribution must render null for subjects it does not own,
+  // otherwise the channel hub would appear on every other plugin's page.
+  assert.equal(renderInner({ kind: 'bundle', pkg: { name: '@deepseek-ai/dsh-web-app' } }), null)
+  assert.equal(renderInner({ kind: 'item', id: 'shell' }), null)
+  assert.equal(renderInner(undefined), null)
+  for (const subject of [{ kind: 'bundle', pkg: { name: '@dsh-unified/dsh-plugin' } }, { kind: 'item', id: 'dsh-unified' }]) {
+    const tree = renderInner(subject)
+    assert.ok(tree, 'own subject must render the hub card')
+    assert.equal(tree.type.name, 'HubSettingsCard')
+    assert.equal(typeof tree.props.t, 'function')
+  }
 })
 
 test('render separates loading, empty and filtered-empty; search is local and reversible', () => {
