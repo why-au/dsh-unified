@@ -6,7 +6,7 @@
   "main": "./lib/index.js",
   "exports": {
     ".": "./lib/index.js",
-    "./client": "./lib/client.js",
+    "./client": "./lib/client.bundle.js",
     "./package.json": "./package.json",
     "./cordis.patch.yml": "./cordis.patch.yml"
   },
@@ -14,7 +14,7 @@
     "client": {
       "platform": "web",
       "inject": ["slots", "locale", "sessions"],
-      "external": ["react", "@deepseek-ai/dsh-client-ui-primitives"]
+      "external": ["react", "react-dom", "@deepseek-ai/dsh-client-ui-primitives"]
     }
   },
   "license": "MIT",
@@ -44,7 +44,9 @@
     "react": "^18.2.0"
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs",
+    "build:client": "node scripts/build-client.mjs",
+    "prepack": "node scripts/build-client.mjs",
+    "test": "node scripts/build-client.mjs && node --test test/*.test.mjs",
     "check": "node scripts/check.mjs",
     "smoke:zen": "node test/zen-smoke.mjs"
   },

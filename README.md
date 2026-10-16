@@ -47,8 +47,8 @@ dsh plugin --profile web add @dsh-unified/dsh-plugin
 
 现代 DSH 的 clientModules 根据宿主 Loader 已激活的包扫描 package 元数据：
 
-1. `dsh.client.platform` 为 `web`，`exports["./client"]` 指向已随包发布的 `lib/client.js`。
-2. `dsh.client.inject` 声明 `slots`、`locale`、`sessions`；`external` 声明 React 和可选 UI primitives，以便宿主准备依赖工厂。
+1. `dsh.client.platform` 为 `web`，`exports["./client"]` 指向随包发布的 `lib/client.bundle.js`。`pnpm build:client` 将订阅和渠道中心两个源码工厂组合为单一宿主入口；`pnpm test` 和打包前会自动构建。
+2. `dsh.client.inject` 声明 `slots`、`locale`、`sessions`；`external` 声明 React、React DOM（渠道弹层 portal）和可选 UI primitives，以便宿主准备依赖工厂。
 3. 客户端通过 `window.__ModuleLoader__.load` 注册工厂，模块 ID 必须与包名 `@dsh-unified/dsh-plugin` 一致。执行脚本只注册，宿主实际加载工厂后才注册 UI。
 4. bundle 配置 seat 使用包名，row 配置 seat 使用 `@dsh-unified/dsh-plugin#dsh-unified`。`dsh-subscriptions` 仍是兼容的 HTTP/locale 命名空间，不是已发布包的身份。
 

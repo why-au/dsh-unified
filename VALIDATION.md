@@ -20,12 +20,20 @@ Initially downloaded https://github.com/why-au/dsh-unified main as a source ZIP.
 ## Executed results
 
 - pnpm install --frozen-lockfile: PASS (pnpm 11.7.0).
-- node --test test/*.test.mjs: PASS, 15 tests, 0 failures.
-- node scripts/check.mjs: PASS, 103 JavaScript files.
+- node scripts/build-client.mjs: PASS, one package factory composes subscriptions and channel hub contributions.
+- node --test test/*.test.mjs: PASS, 23 tests, 0 failures.
+- node scripts/check.mjs: PASS, 107 JavaScript files.
 - Package entry dynamic import: PASS, exported name and apply function.
 - pnpm pack --pack-destination ..: PASS, dsh-unified-dsh-plugin-0.1.0.tgz.
 
 Tests cover the actual AccountStore -> adapter manager -> registered adapter path, model discovery, text/usage streaming, real tool schemas, streamed tool arguments, tool-result continuation, 429 cooldown/recovery, zero anonymous credential calls, client factory/seat disposal, settings/updater contracts and entry dependency resolution. Test homes are temporary, and upstream responses are mocked.
+
+## UI refinement
+
+- Theme-aware account cards, responsive spacing, explicit button hierarchy, keyboard focus, reduced-motion rules and hidden manual token input.
+- Channel hub adds local search and separate loading/unconfigured/no-match states, text status, semantic progress bars and responsive card layout.
+- Discovered that panel-client.js was previously not applied by the published client entry. Added a deterministic build step and committed package bundle that applies both factories, and fixed hub slot disposal.
+- UI tests execute real factories/components with Node VM host/React stubs and preserve endpoint/callback contracts. These are not browser screenshots or visual acceptance tests.
 
 ## Not verified
 

@@ -13,6 +13,7 @@ function loadClient({ primitives = true } = {}) {
   const styles = []
   const document = {
     querySelector: () => styles[0] || null,
+    getElementById: () => null,
     createElement: () => ({ dataset: {}, setAttribute() {} }),
     head: { appendChild: (tag) => styles.push(tag) },
   }
@@ -23,6 +24,7 @@ function loadClient({ primitives = true } = {}) {
   const exports = registration.factory((id) => {
     required.push(id)
     if (id === 'react') return { Component: class {}, createElement() {} }
+    if (id === 'react-dom') return { createPortal() {} }
     if (id === '@deepseek-ai/dsh-client-ui-primitives' && primitives) return {}
     throw new Error(`Unavailable external: ${id}`)
   })
@@ -32,7 +34,7 @@ function loadClient({ primitives = true } = {}) {
 test('manifest declares the host-discovered web client and its externals', () => {
   assert.equal(pkg.dsh.client.platform, 'web')
   assert.deepEqual(pkg.dsh.client.inject, ['slots', 'locale', 'sessions'])
-  assert.equal(pkg.exports['./client'], './lib/client.js')
+  assert.equal(pkg.exports['./client'], './lib/client.bundle.js')
   const loaded = loadClient()
   assert.equal(loaded.registration.id, pkg.name)
   assert.deepEqual(Array.from(loaded.exports.inject), pkg.dsh.client.inject)
@@ -79,7 +81,8 @@ test('client registers unified bundle/row seats and disposes all UI seats', () =
   assert.ok(rows.some((r) => r.name === 'plugins.item' && r.id === 'dsh-unified'))
   assert.ok(rows.some((r) => r.name === 'conversation.session.header.actions'))
   assert.ok(rows.some((r) => r.name === 'conversation.input.right'))
-  assert.equal(locales.size, 2)
+  assert.ok(rows.some((r) => r.name === 'sidebar.footer.action' && r.id === 'connect-hub'), 'composed entry must apply the channel hub too')
+  assert.equal(locales.size, 3)
   for (const off of effects.reverse()) off()
   assert.equal(active.size, 0, 'disable/reload must release every registered UI seat')
   assert.equal(locales.size, 0)
