@@ -39,5 +39,12 @@
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "typecheck": "tsc -p tsconfig.checkjs.json"
-  }
+  },
+  "files": [
+    "lib/",
+    "NOTICE.md",
+    "README.md",
+    "cordis.patch.yml",
+    "LICENSE"
+  ]
 }
