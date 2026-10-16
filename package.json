@@ -1,0 +1,31 @@
+{
+  "name": "@dsh-unified/dsh-plugin",
+  "version": "0.1.0",
+  "description": "Unified DSH plugin: aggregate 18+ AI platforms (ChatGPT/Codex, Claude, Grok, Copilot, Antigravity, WorkBuddy, Trae, Qoder, OpenCode Zen, Qwen, Ernie, GLM, Kimi, Spark, Cursor, ...) into DeepSeek Harness with multi-account rotation, unified check-in panel and zero-leak OAuth.",
+  "type": "module",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "license": "MIT",
+  "keywords": ["dsh", "dsh-plugin", "deepseek-harness", "subscriptions", "llm"],
+  "dependencies": {
+    "socks": "^2.8.9",
+    "undici": "^8.10.1"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1",
+    "@deepseek-ai/dsh-credentials": "^0.1.7-rc.2 || ^0.2.0-rc.1 || ^0.2.0-rc.2",
+    "@deepseek-ai/dsh-host-webserver": "^0.1.7-rc.2 || ^0.2.0-rc.1 || ^0.2.0-rc.2",
+    "@deepseek-ai/dsh-llm": "^0.1.7-rc.2 || ^0.2.0-rc.1 || ^0.2.0-rc.2",
+    "@deepseek-ai/dsh-settings": "^0.1.7-rc.2 || ^0.2.0-rc.1 || ^0.2.0-rc.2",
+    "@deepseek-ai/schemastery": "^3.18.4"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "typecheck": "tsc -p tsconfig.checkjs.json"
+  }
+}

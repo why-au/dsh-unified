@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# build
+dist/
+*.tsbuildinfo
+
+# dsh state (never commit credentials)
+.DSH_HOME/
+dsh_home/
+
+# logs / tmp
+*.log
+.tmp/
+
+# os
+.DS_Store

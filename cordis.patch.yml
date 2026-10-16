@@ -1,0 +1,19 @@
+# cordis.patch.yml —— DSH 插件市场清单（dsh-unified）
+
+# 借鉴 dsh-subscriptions 与 dsh-connect 的清单结构
+# 安装方式：dsh plugin --profile web add dsh-unified
+
+version: 1.0.0
+
+services:
+  - id: dsh-unified
+    name: dsh-unified
+    description: 聚合 18+ 平台（Codex/Claude/Grok/Copilot/Antigravity/WorkBuddy/Trae/Qoder/OpenCode Zen/Qwen/GLM/Kimi/Spark/...）的统一 DSH 插件：多账号轮换、统一签到面板、零泄露 OAuth
+    entry:
+      type: module
+      path: ./lib/index.js
+    inject:
+      - llm
+      - credentials
+      - webServer
+      - settings
