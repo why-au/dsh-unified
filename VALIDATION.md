@@ -51,6 +51,21 @@ Isolated acceptance (`DSH_HOME` and profile kept outside the real harness home; 
 - A deprecated-format `cordis.patch.yml` in the host's own profile (from an earlier unrelated plugin) was left untouched.
 - Verified against the installed 0.2.0-rc.2 host packages, not just documentation: which seats this plugin registers, which of them the host actually renders, and the `plugins.detail.section` subject filter behaviour.
 
+## Desktop replacement drill (isolated copy, real credentials)
+
+Set up a separate `DSH_HOME` (`drill-home`) with a copy of the desktop profile and **copies** of the real credential/state files, installed the same old aggregate bundle to establish a baseline, then replaced it with this plugin. The real profile and the original credential files were never touched.
+
+Baseline (old aggregate, same credential): `/plugins/dsh-workbuddy-connect/1/status` reported `signed-in`, `nickname: 留恋`, live catalog.
+
+Two real defects were found only by this drill, both of which the offline suite had passed over:
+
+- **Channels were applied with `undefined` config.** `lib/index.js` called `chModule.apply(ctx, undefined)`. WorkBuddy reads `config.authFile` synchronously inside `apply()`, so it threw before registering its provider; the surrounding `try/catch` downgraded that to a log warning. The provider routes were therefore never mounted and the hub showed the channel as `unavailable: fetch failed`. trae/qoder guard themselves with `config ?? {}`; workbuddy did not. Now an object is always passed.
+- **The hub fanned out to a hardcoded port.** `loopbackBase()` trusted only `DSH_PORT` and otherwise used 3079. The host exposes the real port as `webServer.port` and does not set `DSH_PORT`, so on any other port every channel row read `fetch failed` while the channels were healthy — a panel-only phantom failure. The host-listened port now wins, with `DSH_PORT` kept as a container fallback.
+
+After both fixes, in the drill: `/plugins/dsh-workbuddy-connect/1/status` → `signed-in`, `nickname: 留恋`, 18 models; hub `/plugins/dsh-unified/status` → `total=1 signedIn=1`, `workbuddy1 signed-in account=留恋 models=18 credits=1,018 / 1,100`. **The pre-existing credential worked with no re-login.**
+
+Replacement mechanics confirmed: `plugin remove <old-bundle>` also drops it from `dsh.profile.bundles`; installing this package appends `@dsh-unified/dsh-plugin`; `--dump-config` then lists only `id: dsh-unified` and none of the four former upstream entries. Leftover empty `@goodandready`/`@opencode2dsh` directories remain in `node_modules` but carry nothing and are not activated.
+
 Tests cover the actual AccountStore -> adapter manager -> registered adapter path, model discovery, text/usage streaming, real tool schemas, streamed tool arguments, tool-result continuation, 429 cooldown/recovery, zero anonymous credential calls, client factory/seat disposal, settings/updater contracts and entry dependency resolution. Test homes are temporary, and upstream responses are mocked.
 
 ## UI refinement
@@ -62,8 +77,9 @@ Tests cover the actual AccountStore -> adapter manager -> registered adapter pat
 
 ## Not verified
 
-- No real upstream model request, login or account refresh was executed.
+- No real upstream model request or chat completion was executed. The drill proved the credential is read, the provider registers and the model catalog loads (18 models); it did not send a prompt to the upstream inference endpoint.
 - Browser rendering and visual acceptance remain unverified: this session has no browser automation/DOM tool. HTTP and resource checks do not prove layout or React mount success.
+- The drill used local credential **copies**. It did not exercise token refresh against the real account (the stored token was valid until 2026-11 and the refresh margin is 5 minutes, so no refresh was triggered and the real account's token was not rotated).
 - Listing a vendor does not establish that its upstream protocol, subscription rights or current model list work. In particular Cursor and other private IDE protocols require separate live validation.
 - Gate placeholders remain necessary for the existing Zen request shape. If a model ignores their description when other real tools are present, the host must reject unsupported calls; no fake execution is provided.
 - The isolated run used the default `web` profile bundles. It was deliberately not installed into the harness home's real `desktop` profile: that profile already carries `dsh-unified-channels`, an installation bundle that aggregates the same four upstream projects (`dsh-connect`, `dsh-plugin-subscriptions`, `@goodandready/dsh-subscriptions`, `@opencode2dsh/dsh-plugin`). Installing both would very likely collide on provider ids, the `dsh-subscriptions` settings namespace and the `/dsh-subscriptions/*` HTTP routes. A correction to an earlier note in this file: the desktop profile's own `cordis.patch.yml` is already a modern top-level array (its `version: 1` is a field inside one entry's config, not a legacy top-level key), so nothing there needed fixing.

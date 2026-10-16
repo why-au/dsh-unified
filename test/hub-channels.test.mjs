@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { mkdtemp, mkdir, writeFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -32,4 +33,18 @@ test('a scan-login credential surfaces the channel in the hub list', () => {
   // Slots with no credential stay hidden, so the list has no phantom entries.
   assert.ok(!rows.includes('workbuddy2'))
   assert.ok(!rows.includes('trae'))
+})
+
+test('the hub fans out to the host-listened port, not a hardcoded default', () => {
+  // Regression: loopbackBase() used to trust only DSH_PORT and otherwise fall
+  // back to 3079. The host exposes the real port as webServer.port and does not
+  // set DSH_PORT, so on any other port every channel row read
+  // "unavailable: fetch failed" while the channels themselves were healthy.
+  const source = readFileSync(new URL('../lib/panel.js', import.meta.url), 'utf8')
+  assert.match(source, /hostWebPort = webCtx\.webServer\?\.port/)
+  assert.match(source, /const fromHost = Number\(hostWebPort\)/)
+  // The host port must be consulted before the DSH_PORT fallback.
+  const hostIndex = source.indexOf('const fromHost = Number(hostWebPort)')
+  const envIndex = source.indexOf('process.env.DSH_PORT')
+  assert.ok(hostIndex !== -1 && envIndex !== -1 && hostIndex < envIndex, 'host port wins over DSH_PORT')
 })
