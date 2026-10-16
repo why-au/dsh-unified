@@ -1,0 +1,4 @@
+# This plugin does not require dependency lifecycle scripts to build or test.
+allowBuilds:
+  '@google/genai': false
+  protobufjs: false

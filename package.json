@@ -1,7 +1,7 @@
 {
   "name": "@dsh-unified/dsh-plugin",
   "version": "0.1.0",
-  "description": "Unified DSH plugin: aggregate 18+ AI platforms (ChatGPT/Codex, Claude, Grok, Copilot, Antigravity, WorkBuddy, Trae, Qoder, OpenCode Zen, Qwen, Ernie, GLM, Kimi, Spark, Cursor, ...) into DeepSeek Harness with multi-account rotation, unified check-in panel and zero-leak OAuth.",
+  "description": "DSH plugin integrating subscription, API-key and IDE model channels with multi-account rotation and a unified channel panel. Provider availability and authentication support vary by deployment.",
   "type": "module",
   "main": "./lib/index.js",
   "exports": {
@@ -9,6 +9,13 @@
     "./client": "./lib/client.js",
     "./package.json": "./package.json",
     "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "dsh": {
+    "client": {
+      "platform": "web",
+      "inject": ["slots", "locale", "sessions"],
+      "external": ["react", "@deepseek-ai/dsh-client-ui-primitives"]
+    }
   },
   "license": "MIT",
   "keywords": [
@@ -20,7 +27,7 @@
   ],
   "dependencies": {
     "socks": "^2.8.9",
-    "undici": "^8.10.1"
+    "undici": "8.10.1"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.2",
@@ -38,7 +45,8 @@
   },
   "scripts": {
     "test": "node --test test/*.test.mjs",
-    "typecheck": "tsc -p tsconfig.checkjs.json"
+    "check": "node scripts/check.mjs",
+    "smoke:zen": "node test/zen-smoke.mjs"
   },
   "files": [
     "lib/",

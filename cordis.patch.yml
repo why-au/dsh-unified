@@ -8,7 +8,7 @@ version: 1.0.0
 services:
   - id: dsh-unified
     name: dsh-unified
-    description: 聚合 18+ 平台（Codex/Claude/Grok/Copilot/Antigravity/WorkBuddy/Trae/Qoder/OpenCode Zen/Qwen/GLM/Kimi/Spark/...）的统一 DSH 插件：多账号轮换、统一签到面板、零泄露 OAuth
+    description: 聚合订阅、API key 与 IDE 模型渠道的 DSH 插件，提供多账号轮换与统一渠道面板；各渠道可用性需按部署环境验证
     entry:
       type: module
       path: ./lib/index.js

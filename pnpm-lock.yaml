@@ -31,10 +31,10 @@ importers:
         version: 0.1.7-rc.2(@deepseek-ai/cordis@4.0.4)
       '@deepseek-ai/dsh-llm-pi-ai':
         specifier: 0.1.7-rc.2
-        version: 0.1.7-rc.2(23o6x37xhd5lajioweoxsiottq)
+        version: 0.1.7-rc.2(8afbeabda814e4bf8082a0d095d9b668)
       '@deepseek-ai/dsh-settings':
         specifier: 0.1.7-rc.2
-        version: 0.1.7-rc.2(6jd47ndoyfndmfdzgaayivxiwm)
+        version: 0.1.7-rc.2(8e56bea4e75fdb6dd42a5d41e3d6addb)
       '@deepseek-ai/schemastery':
         specifier: ^3.18.4
         version: 3.18.4
@@ -48,8 +48,8 @@ importers:
         specifier: ^2.8.9
         version: 2.8.10
       undici:
-        specifier: ^8.10.1
-        version: 8.12.2
+        specifier: 8.10.1
+        version: 8.10.1
 
 packages:
 
@@ -650,24 +650,28 @@ packages:
     engines: {node: '>=20'}
     cpu: [arm64]
     os: [linux]
+    libc: [glibc]
 
   node-addon-require-builtin-linux-arm64-musl@0.1.9:
     resolution: {integrity: sha512-85Z5Avp++wfa9iiTIH8LC/r6qvlC/CiwpifiwIz0gYQ9PzajTSkz06gX7YDqf1oUqWYxU9uwNEOmo7mktHOOfA==}
     engines: {node: '>=20'}
     cpu: [arm64]
     os: [linux]
+    libc: [musl]
 
   node-addon-require-builtin-linux-x64-gnu@0.1.9:
     resolution: {integrity: sha512-fh3K3/JvBfSYwU8vEOpp4Wdp4N/jX0EnZYq5GsaftlQin1FVqgve/yDNoh+asxBMOQyHOG8F4dXlV1WCierrfg==}
     engines: {node: '>=20'}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   node-addon-require-builtin-linux-x64-musl@0.1.9:
     resolution: {integrity: sha512-B6fu/5xmbRxnifM7nWz0IESkYnUl8dwFZmRDMsxdhzv2nb+EtBRFAXg4lf73qhX3yoZD4SnWJILBQMlIAwBCzw==}
     engines: {node: '>=20'}
     cpu: [x64]
     os: [linux]
+    libc: [musl]
 
   node-addon-require-builtin-win32-arm64-msvc@0.1.9:
     resolution: {integrity: sha512-FOQuzNe8B1BANu886rJgdbQuRxPGUQmewkykw87wSr32U0ibQ3AWGuUM/Gh7LG4RekjFaifj7gEI/tq2+6GU6g==}
@@ -773,8 +777,8 @@ packages:
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
-  undici@8.12.2:
-    resolution: {integrity: sha512-XtuDWVdqTLr3NAxm2ly9/hU6kUsJOgGh1RASzMBbsw6aWCOaQzHdW+QQDfdERjfJ2V5vL5pRPa4RetO9UfivDg==}
+  undici@8.10.1:
+    resolution: {integrity: sha512-YQ3WlbqjYMmNpdvDH64jAgLjxuAR9+649calDWhbshYaeQGO2bR4nI94ORJmwI3J9YhoKQnpyGOK+0zlWS5N5Q==}
     engines: {node: '>=22.19.0'}
 
   vary@1.1.2:
@@ -1144,7 +1148,7 @@ snapshots:
     dependencies:
       '@deepseek-ai/cordis': 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
 
-  '@deepseek-ai/dsh-llm-pi-ai@0.1.7-rc.2(23o6x37xhd5lajioweoxsiottq)':
+  '@deepseek-ai/dsh-llm-pi-ai@0.1.7-rc.2(8afbeabda814e4bf8082a0d095d9b668)':
     dependencies:
       '@deepseek-ai/cordis': 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
       '@deepseek-ai/dsh-attachment': 0.1.7-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-brand@0.1.7-rc.2(@deepseek-ai/cordis@4.0.4))
@@ -1203,7 +1207,7 @@ snapshots:
       '@deepseek-ai/dsh-scope': 0.1.7-rc.2(@deepseek-ai/cordis@4.0.4)(@deepseek-ai/dsh-invariants@0.1.7-rc.2(@deepseek-ai/cordis@4.0.4))
       '@deepseek-ai/dsh-util-values': 0.1.7-rc.2(@deepseek-ai/cordis@4.0.4)
 
-  '@deepseek-ai/dsh-settings@0.1.7-rc.2(6jd47ndoyfndmfdzgaayivxiwm)':
+  '@deepseek-ai/dsh-settings@0.1.7-rc.2(8e56bea4e75fdb6dd42a5d41e3d6addb)':
     dependencies:
       '@deepseek-ai/cordis': 4.0.4(@deepseek-ai/cordis-plugin-include@1.0.9)(@deepseek-ai/cordis-plugin-loader@1.0.5)
       '@deepseek-ai/cordis-plugin-loader': 1.0.5(@deepseek-ai/cordis@4.0.4)(node-addon-require-builtin@0.1.9)
@@ -1664,7 +1668,7 @@ snapshots:
 
   undici-types@8.9.0: {}
 
-  undici@8.12.2: {}
+  undici@8.10.1: {}
 
   vary@1.1.2: {}
 
