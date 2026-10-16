@@ -23,6 +23,22 @@
 - 手工检查诊断输出后再分享。显示脱敏并不等于凭据静态加密，也不代表所有错误消息都可公开。
 - 启用代理或跨渠道回退前，确认目标可信并理解请求内容会发往何处；不要把回退理解为同一服务商内切换。
 
+### IDE 渠道的凭据落点（迁移/清理前必读）
+
+这三家 IDE 渠道不走宿主凭据库，而是在 `$DSH_HOME` 下按文件保存。替换或卸载旧插件前，先分清哪些文件属于**本插件/上游插件**、哪些属于**桌面应用**：
+
+| 路径 | 归属 | 删除插件时 |
+|------|------|-----------|
+| `$DSH_HOME/connect-auth/<id>.json` | 插件落点（网页粘贴凭据写入处） | 可删，需重新登录 |
+| `$DSH_HOME/.workbuddy<N>-auth.json` | 插件落点（**扫码登录**写入的副本） | 可删，需重新扫码 |
+| `$DSH_HOME/.workbuddy<N>-catalog.json` 等 `.workbuddy*` 状态文件 | 插件落点（目录/探针/可见性缓存，非凭据） | 可删 |
+| `$DSH_HOME/connect-channels.json` | 本插件的渠道注册表 | 可删 |
+| `%LOCALAPPDATA%\CodeBuddyExtension\...\workbuddy-desktop.info` | **WorkBuddy 桌面应用**自己的登录态 | **保留**（应用要用） |
+
+重要：WorkBuddy 各槽位**有意不读**桌面应用那份文件（`configuredAuthFile()` 把每个槽位钉到自己的 `connect-auth/workbuddy<N>.json`）。否则空槽位会回退去读 App 凭据，表现为"看起来已登录、其实是账号 1 的同一个号"。因此渠道中心也**不会**因为你装了桌面 App 就把该槽位判为已配置。
+
+`trae` / `qoder` 的读取路径可由配置项（`credentialFile` / `patFile` / `sessionFile`）指回旧位置；改了配置项时请同步确认渠道仍能被列出。
+
 ## 安装（手工步骤，本次开发验证不执行安装）
 
 需要兼容当前 package peerDependencies 的 DSH 环境及 Node/pnpm。本包当前声明并已针对 DSH `0.2.0-rc.2` 的插件接口核对；换用其他宿主版本前请先对照 `peerDependencies`。请先使用隔离的测试 profile，备份原有配置，不覆盖正在使用的安装或凭据。以下以 `web` profile 为示例；实际 CLI 参数以该版本 `dsh plugin --help` 为准。
@@ -69,6 +85,18 @@ dsh plugin --profile web add @dsh-unified/dsh-plugin
 | 渠道中心（配置页） | `plugins.detail.section`（list，带 `subject` 过滤） | 仅在本插件自己的详情页出现 |
 
 `settings.plugin.item` 在 0.2.0-rc.2 中**已被移除**（宿主内 0 处注册、0 处渲染）；旧版本用它、新版本用 `plugins.detail.section`，两者同时注册，各自只在存在时生效。渠道中心**不能**改用 `plugins.bundle.config`：那是 keyed 席位、订阅卡片已占用本包 key，后注册者会替换先注册者，从而把订阅界面顶掉。
+
+### 与旧插件的共存与替换
+
+本包聚合自四个上游项目，因此**不可**与它们同时激活：会争抢相同的 provider id、`dsh-subscriptions` 设置命名空间与 `/dsh-subscriptions/*` 路由。装成 `dsh-unified-channels` 这类"安装用 bundle"的部署，需要先移除该 bundle（它插入的正是那四个上游条目）。
+
+替换步骤（每步可回退）：
+
+1. 备份 `$DSH_HOME/profiles/<profile>/` 与上表列出的凭据文件。
+2. 先复制一份 profile 做替换演练，确认渠道列表与模型都正常。
+3. 移除旧 bundle，装入本包，重启 profile。
+4. 核对渠道列表：原 `connect-auth/` 下的凭据会**直接生效**，无需重新登录；只有扫码写入的 `.workbuddy<N>-auth.json` 也会被识别。
+5. 确认无误后再删除旧插件残留文件。
 
 ### 安装验收清单（已在隔离 profile 执行一次，见 VALIDATION.md）
 
