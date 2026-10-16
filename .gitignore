@@ -16,4 +16,4 @@ dsh_home/
 .tmp/
 
 # os
-.DS_Store
+.DS_Store*.tgz
