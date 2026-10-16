@@ -58,6 +58,18 @@ dsh plugin --profile web add @dsh-unified/dsh-plugin
 
 包还必须能被宿主当作 profile 层加载：`dsh.bundle.patch` 指向 `cordis.patch.yml`，而该文件是顶层数组的 `insert` overlay（不再是旧的 `version/services/entry` 结构）。缺少它时安装器只会把它当作普通依赖，插件不会激活。安装后安装器会自动把包名加入该 profile 的 `dsh.profile.bundles`。
 
+### 界面入口挂载位置（0.2.0-rc.2 实测）
+
+订阅界面与渠道中心被合成为同一个客户端工厂，但挂载的席位不同：
+
+| 界面 | 席位 | 出现位置 |
+|------|------|----------|
+| 订阅配置 | `plugins.item`（按条目 id） | 插件页里本插件的卡片与详情页正文 |
+| 渠道中心 | `sidebar.footer.action` | 左侧栏底部入口（弹出面板） |
+| 渠道中心（配置页） | `plugins.detail.section`（list，带 `subject` 过滤） | 仅在本插件自己的详情页出现 |
+
+`settings.plugin.item` 在 0.2.0-rc.2 中**已被移除**（宿主内 0 处注册、0 处渲染）；旧版本用它、新版本用 `plugins.detail.section`，两者同时注册，各自只在存在时生效。渠道中心**不能**改用 `plugins.bundle.config`：那是 keyed 席位、订阅卡片已占用本包 key，后注册者会替换先注册者，从而把订阅界面顶掉。
+
 ### 安装验收清单（已在隔离 profile 执行一次，见 VALIDATION.md）
 
 - 插件管理器显示 `@dsh-unified/dsh-plugin`，宿主无依赖解析/激活失败；不要只检查插件清单是否存在。
@@ -74,13 +86,16 @@ dsh plugin --profile web add @dsh-unified/dsh-plugin
 2. 启动后页面 HTTP 200，boot graph 含 `@dsh-unified/dsh-plugin`；其 `plugins/??…/client.js` 资源 200，且同时包含订阅 UI 与渠道中心两个工厂。
 3. 后端路由 `/plugins/dsh-unified/status|settings`、`/dsh-subscriptions/health|config|status` 均 200；Zen 匿名渠道显示为已登录且无需凭据。
 4. 通过 `/dsh-subscriptions/config`（GET/PUT + revision）写入配置成功，重启后仍保留；敏感字段回显为掩码。
+5. 对着**已安装的宿主包**逐个核对席位：本插件注册的席位哪些真实存在、哪些被宿主渲染；由此发现并修正了渠道中心的失效入口。
 
-浏览器内的实际渲染、布局与 React 挂载仍需人工确认：本次没有浏览器自动化工具，HTTP 与资源检查不能替代视觉验收。
+浏览器内的实际渲染、布局与 React 挂载仍需人工确认：本次没有浏览器自动化工具，HTTP 与资源检查不能替代视觉验收。另外，**版本号不变时安装器会报 "Already up to date" 而不替换文件**；本地验证需先 `plugin remove` 再 `add`，或递增版本号。
 
 ## 架构
 
 - `lib/index.js`：host 编排入口，挂接订阅底座、三个 IDE 渠道和面板。
-- `lib/client.js`：宿主模块加载器消费的客户端工厂及订阅配置 UI。
+- `lib/client.js`：订阅配置 UI 的客户端工厂源码。
+- `lib/panel-client.js`：渠道中心的客户端工厂源码（左侧栏入口 + 面板 + 配置卡片）。
+- `lib/client.bundle.js`：**生成产物**，由 `scripts/build-client.mjs` 把上面两个工厂合成为宿主加载的单一入口；`pnpm test` 会校验它与源码一致，改完源码要重新 `pnpm build:client`。
 - `lib/vendors/`：vendor 实现；`lib/channels/`：独立 IDE 渠道。
 - `lib/panel.js`：统一面板及 HTTP 聚合。
 - `lib/rotate.js`、`lib/quarantine.js`、`lib/forecast.js`、`lib/cascade.js` 等：轮换、冷却、预测和回退逻辑（位于 lib 根目录，不是 lib/core）。
@@ -89,11 +104,9 @@ dsh plugin --profile web add @dsh-unified/dsh-plugin
 
 ```bash
 pnpm install
-pnpm test
+pnpm test                     # 先校验/重建前端产物，再跑全部离线测试
 pnpm check                    # 递归 JavaScript 语法检查（不是类型检查）
-node --test test/client-integration.test.mjs
-node --check lib/client.js
-node --check lib/index.js
+pnpm build:client             # 只重建 lib/client.bundle.js（改了任一 *-client 源码后）
 
 # 可选远端冒烟：会访问真实 Zen 服务；不属于离线测试
 pnpm smoke:zen
