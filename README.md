@@ -23,7 +23,7 @@
 
 ## 安装（手工步骤，本次开发验证不执行安装）
 
-需要兼容当前 package peerDependencies 的 DSH 环境及 Node/pnpm。请先使用隔离的测试 profile，备份原有配置，不覆盖正在使用的安装或凭据。以下以 `web` profile 为示例；实际 CLI 参数以该版本 `dsh plugin --help` 为准。
+需要兼容当前 package peerDependencies 的 DSH 环境及 Node/pnpm。本包当前声明并已针对 DSH `0.2.0-rc.2` 的插件接口核对；换用其他宿主版本前请先对照 `peerDependencies`。请先使用隔离的测试 profile，备份原有配置，不覆盖正在使用的安装或凭据。以下以 `web` profile 为示例；实际 CLI 参数以该版本 `dsh plugin --help` 为准。
 
 ```bash
 # 源码打包：进入此仓库目录后执行
@@ -54,13 +54,26 @@ dsh plugin --profile web add @dsh-unified/dsh-plugin
 
 不需要在 host `apply()` 中再次注入脚本或注册重复的静态资源路由。只有 `./client` export 而没有 `dsh.client` 元数据不足以让现代宿主发现 UI。
 
-### 安装验收清单（尚未在本次修改中执行）
+包还必须能被宿主当作 profile 层加载：`dsh.bundle.patch` 指向 `cordis.patch.yml`，而该文件是顶层数组的 `insert` overlay（不再是旧的 `version/services/entry` 结构）。缺少它时安装器只会把它当作普通依赖，插件不会激活。安装后安装器会自动把包名加入该 profile 的 `dsh.profile.bundles`。
+
+### 安装验收清单（已在隔离 profile 执行一次，见 VALIDATION.md）
 
 - 插件管理器显示 `@dsh-unified/dsh-plugin`，宿主无依赖解析/激活失败；不要只检查插件清单是否存在。
 - 刷新页面后，检查宿主 boot graph / 网络中的插件 bundle 是否包含该包；控制台不应出现 module factory missing 或上游包 ID 冲突。
 - 打开此包的配置详情，确认订阅卡片可见；检查「渠道中心」面板入口和输入区额度/订阅 UI。布局入口可能随宿主版本变化，不假定存在独立的 Settings → Subscriptions 页。
 - 先不提供真实凭据，确认配置读取失败时有可见反馈；随后仅在自愿提供测试凭据的隔离环境中，逐个验证登录、保存/重启持久化、模型列表与请求。不要凭某一渠道成功宣称全部可用。
 - 卸载/禁用并刷新，确认入口消失；保留安装版本、宿主版本及脱敏错误作为验证记录。
+
+### 已执行的隔离验收（0.2.0-rc.2）
+
+在独立 `DSH_HOME` 与独立 profile 中完成，未使用真实凭据、未改动正在使用的 profile：
+
+1. `dsh plugin --profile <test> add <tgz>` 成功后，安装器**自动**把本包加入该 profile 的 `dsh.profile.bundles`；早前版本需要在包里声明 `dsh.bundle`，现已修正。
+2. 启动后页面 HTTP 200，boot graph 含 `@dsh-unified/dsh-plugin`；其 `plugins/??…/client.js` 资源 200，且同时包含订阅 UI 与渠道中心两个工厂。
+3. 后端路由 `/plugins/dsh-unified/status|settings`、`/dsh-subscriptions/health|config|status` 均 200；Zen 匿名渠道显示为已登录且无需凭据。
+4. 通过 `/dsh-subscriptions/config`（GET/PUT + revision）写入配置成功，重启后仍保留；敏感字段回显为掩码。
+
+浏览器内的实际渲染、布局与 React 挂载仍需人工确认：本次没有浏览器自动化工具，HTTP 与资源检查不能替代视觉验收。
 
 ## 架构
 

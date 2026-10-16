@@ -33,11 +33,12 @@ function loadClient({ primitives = true } = {}) {
 
 test('manifest declares the host-discovered web client and its externals', () => {
   assert.equal(pkg.dsh.client.platform, 'web')
-  assert.deepEqual(pkg.dsh.client.inject, ['slots', 'locale', 'sessions'])
+  assert.deepEqual(pkg.dsh.client.inject, ['@deepseek-ai/dsh-client-ui-renderer', '@deepseek-ai/dsh-client-locale', '@deepseek-ai/dsh-api-session-controller'])
+  assert.equal(pkg.dsh.bundle.patch, './cordis.patch.yml')
   assert.equal(pkg.exports['./client'], './lib/client.bundle.js')
   const loaded = loadClient()
   assert.equal(loaded.registration.id, pkg.name)
-  assert.deepEqual(Array.from(loaded.exports.inject), pkg.dsh.client.inject)
+  assert.deepEqual(Array.from(loaded.exports.inject), ['slots', 'locale', 'sessions'])
   for (const id of loaded.required) assert.ok(pkg.dsh.client.external.includes(id), id)
   assert.equal(typeof loaded.exports.apply, 'function')
   assert.equal(loaded.styles.length, 1)

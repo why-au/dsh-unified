@@ -21,10 +21,27 @@ Initially downloaded https://github.com/why-au/dsh-unified main as a source ZIP.
 
 - pnpm install --frozen-lockfile: PASS (pnpm 11.7.0).
 - node scripts/build-client.mjs: PASS, one package factory composes subscriptions and channel hub contributions.
-- node --test test/*.test.mjs: PASS, 23 tests, 0 failures.
-- node scripts/check.mjs: PASS, 107 JavaScript files.
+- node --test test/*.test.mjs: PASS, 25 tests, 0 failures.
+- node scripts/check.mjs: PASS, 108 JavaScript files.
 - Package entry dynamic import: PASS, exported name and apply function.
-- pnpm pack --pack-destination ..: PASS, dsh-unified-dsh-plugin-0.1.0.tgz.
+- pnpm pack: PASS, dsh-unified-dsh-plugin-0.1.1.tgz.
+
+## Host compatibility and isolated deployment (DSH 0.2.0-rc.2)
+
+Found only by installing into a real host, not by the offline suite:
+
+- `dsh.bundle` was missing and `cordis.patch.yml` used a legacy `version/services/entry` shape, so the plugin installed as a plain dependency and never activated. Fixed to a modern `- insert:` overlay plus `dsh.bundle.patch`.
+- `dsh.client.inject` listed Cordis service names where the host expects package names for graph preloading. Fixed to the renderer/locale/session-controller package IDs; the client's own `exports.inject` keeps the service names.
+- `antigravityClientSecret` was the only non-volatile Config field, and the full config object is written through `settings.update()`, which rejects non-volatile paths. Saving settings would have failed. Field is now volatile.
+- peerDependencies moved from 0.1.7-rc.2 to 0.2.0-rc.2 to match the installed host.
+
+Isolated acceptance (`DSH_HOME` and profile kept outside the real harness home; no real credentials):
+
+- Installer auto-registered the package into the test profile's `dsh.profile.bundles`.
+- Page HTTP 200 with the plugin present in the boot graph; its `client.js` bundle 200 and contains both the subscriptions and channel-hub factories.
+- `/plugins/dsh-unified/status|settings` and `/dsh-subscriptions/health|config|status` all 200; Zen reported signed in without credentials.
+- Config GET/PUT with revision succeeded, sensitive values echo masked, and the write survived a restart.
+- A deprecated-format `cordis.patch.yml` in the host's own profile (from an earlier unrelated plugin) was left untouched.
 
 Tests cover the actual AccountStore -> adapter manager -> registered adapter path, model discovery, text/usage streaming, real tool schemas, streamed tool arguments, tool-result continuation, 429 cooldown/recovery, zero anonymous credential calls, client factory/seat disposal, settings/updater contracts and entry dependency resolution. Test homes are temporary, and upstream responses are mocked.
 
@@ -38,8 +55,9 @@ Tests cover the actual AccountStore -> adapter manager -> registered adapter pat
 ## Not verified
 
 - No real upstream model request, login or account refresh was executed.
-- No plugin installation into a real DSH profile, browser render, or live GUI acceptance was performed.
+- Browser rendering and visual acceptance remain unverified: this session has no browser automation/DOM tool. HTTP and resource checks do not prove layout or React mount success.
 - Listing a vendor does not establish that its upstream protocol, subscription rights or current model list work. In particular Cursor and other private IDE protocols require separate live validation.
 - Gate placeholders remain necessary for the existing Zen request shape. If a model ignores their description when other real tools are present, the host must reject unsupported calls; no fake execution is provided.
+- The isolated run used the default `web` profile bundles. The real harness home's `desktop` profile still carries a deprecated `version/services/entry` patch from an earlier unrelated plugin; that was deliberately left alone, and it is unknown whether it affects loading there.
 
-Use an isolated profile and follow README acceptance steps before replacing existing plugins. Do not install this aggregate together with overlapping upstream plugins without checking provider/service collisions. The local package retains upstream version 0.1.0 and is not a published release.
+Use an isolated profile and follow README acceptance steps before replacing existing plugins. Do not install this aggregate together with overlapping upstream plugins without checking provider/service collisions. The local package version is 0.1.1 and is not a published release.
