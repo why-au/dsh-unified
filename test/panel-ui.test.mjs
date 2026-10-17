@@ -7,7 +7,7 @@ const source = readFileSync(new URL('../lib/panel-client.js', import.meta.url), 
 
 // Execute the actual loader factory and component functions, not a duplicate UI.
 // Minimal React element/hook and DOM stubs: no browser layout or visual assertions.
-function harness() {
+function harness(fetchImpl) {
   let descriptor, cursor = 0, state = [], copy
   const styles = [], calls = [], registrations = [], disposers = [], disposed = []
   const React = {
@@ -24,7 +24,7 @@ function harness() {
     window: { __ModuleLoader__: { load(value) { descriptor = value } } },
     document: { createElement: () => ({ setAttribute() {} }), head: { appendChild(node) { styles.push(node.textContent) } } },
     console, AbortController,
-    fetch: async (url, options) => { calls.push({ url, ...options }); return { ok: true, json: async () => ({ results: [], state: 'done' }) } },
+    fetch: async (url, options) => { calls.push({ url, ...options }); return fetchImpl ? fetchImpl(url, options) : { ok: true, json: async () => ({ results: [], state: 'done' }) } },
   }
   // Test-only lexical exposure leaves shipped exports/API untouched.
   vm.runInNewContext(source.replace('return module.exports;', 'module.exports.__ui = { HubPanel, ChannelRow, AuthRow, Preferences, HUB_CSS, zh, en }; return module.exports;'), context)
@@ -167,6 +167,46 @@ test('auth retains two-step delete, restart-gated scan, credential collapse and 
   const prefs = h.mount(h.plugin.__ui.Preferences, { prefs: status.preferences, onPatch: patch => actions.push(patch) })()
   find(prefs, n => n.type === 'input').props.onChange({ target: { checked: false } })
   assert.equal(actions[1].autoCheckin, false)
+})
+
+test('check-in footer stays outside scroll body, reports results and disappears on auth page', async () => {
+  const h = harness(async () => ({ ok: true, json: async () => ({ results: [
+    { id: 'workbuddy1', state: 'claimed' }, { id: 'trae', state: 'done' }, { id: 'qoder', state: 'failed' },
+  ] }) }))
+  const render = h.mount(h.plugin.__ui.HubPanel, { status, reload() {}, setStatus() {} })
+  let tree = render()
+  const footer = find(tree, n => n.props.className === 'dshc-checkin-footer')
+  assert.ok(tree.props.children.includes(footer), 'footer is a direct panel child, not in scrolling content')
+  assert.equal(footer.props.style.flex, 'none')
+  assert.match(text(footer), /1 accounts to try/)
+  await find(footer, n => n.type === 'button').props.onClick()
+  tree = render()
+  assert.match(text(tree), /Claimed 1 · Already done 1 · Failed\/unknown 1/)
+  find(tree, n => n.type === 'button' && text(n) === 'Auth').props.onClick()
+  assert.equal(nodes(render()).some(n => n.props.className === 'dshc-checkin-footer'), false)
+})
+
+test('check-in locks overlapping requests and shows HTTP errors instead of success', async () => {
+  let resolve
+  const h = harness(() => new Promise(r => { resolve = r }))
+  const render = h.mount(h.plugin.__ui.HubPanel, { status, reload() {}, setStatus() {} })
+  const tree = render()
+  const all = find(tree, n => n.type === 'button' && text(n).startsWith('Check in all'))
+  const row = find(tree, n => n.type?.name === 'ChannelRow')
+  const first = all.props.onClick()
+  await all.props.onClick()
+  await row.props.onCheckin(channel)
+  assert.equal(h.calls.length, 1, 'synchronous lock blocks repeated clicks and row/bulk overlap')
+  assert.equal(find(render(), n => n.type === 'button' && text(n) === 'Checking in…').props.disabled, true)
+  resolve({ ok: false, status: 503, json: async () => ({ results: [] }) })
+  await first
+  assert.match(text(find(render(), n => n.props.role === 'alert')), /503/)
+  assert.doesNotMatch(text(render()), /Claimed 0/)
+})
+
+test('subscription quota contribution contains no check-in UI or write endpoint', () => {
+  const quota = readFileSync(new URL('../lib/quota-client.js', import.meta.url), 'utf8')
+  assert.doesNotMatch(quota, /checkin|check-in|CHECKIN_PATH|method:\s*['"]POST/)
 })
 
 test('disabled/busy check-in remains unavailable; theme, narrow-screen and reduced-motion contracts', () => {

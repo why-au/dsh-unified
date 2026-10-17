@@ -1,5 +1,13 @@
 # Local validation — 2026-10-16
 
+## 0.1.7 channel-center check-in layout (2026-10-17)
+
+- Kept subscription quota popovers read-only; no check-in UI or POST route was added there.
+- Channel-center footer remains outside the scrolling body: account hint on the left, bulk check-in on the right, accessible result/error feedback. The plugin-page card now also uses a bounded flex/scroll layout. Existing sidebar claim hints and per-row check-in remain.
+- Added synchronous request locking for row/bulk overlap and rejected HTTP error responses even if a results array is present.
+- Existing opt-in preference behaviour was not redesigned: autoCheckin remains available with its prior default. Read-only WorkBuddy activity data cannot guarantee an unclaimed reward, so the footer says accounts to try.
+- **60/60 tests PASS**, **116 JS files syntax PASS**; browser bundle rebuilt. No real check-in or desktop modification was performed; visual acceptance still pending.
+
 ## 0.1.6 composer quota addition (2026-10-17)
 
 - Added a third composed client contribution on `conversation.composer.dock`, portalling into the owning composer's `[data-composer-stats]` row with bounded ancestor lookup and fallback dock rendering.

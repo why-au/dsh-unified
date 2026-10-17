@@ -76,7 +76,7 @@ Get-CimInstance Win32_Process -Filter "Name='DeepSeek Harness.exe'" |
 dsh plugin --profile desktop remove dsh-unified-channels
 
 # 2) 装入本插件（按你的实际产物路径）
-dsh plugin --profile desktop add D:\work\plugin\dsh-unified-dsh-plugin-0.1.6.tgz
+dsh plugin --profile desktop add D:\work\plugin\dsh-unified-dsh-plugin-0.1.7.tgz
 
 # 3) 核对：应只剩 id: dsh-unified，不再有四个上游条目
 dsh --profile desktop --dump-config | Select-String 'dsh-unified|dsh-connect|llm-subscriptions|opencode2dsh'
