@@ -10,15 +10,21 @@ test('package is an activatable modern DSH bundle with a package-name overlay', 
   assert.match(patch, /^- insert:/m)
   assert.ok(patch.includes(`name: '${pkg.name}'`))
   assert.ok(!/^services:|^version:/m.test(patch))
-  // Every host package must be pinned to the SAME version: the plugin targets one
-  // exact DSH runtime at a time, and a mixed set would be silently half-supported.
-  // The version itself moves with each DSH release, so pin the invariant, not a literal.
-  const hostVersions = new Set()
+  // Every host package must share the SAME acceptance range: a mixed set would
+  // be silently half-supported. Ranges are OR lists of exact DSH versions so
+  // one tarball boots across the rc trains without needing per-version
+  // exemptions; keep the invariant (one shared range) rather than a literal.
+  const hostRanges = new Set()
   for (const [name, version] of Object.entries(pkg.peerDependencies)) {
-    if (name.startsWith('@deepseek-ai/dsh-')) hostVersions.add(version)
+    if (name.startsWith('@deepseek-ai/dsh-')) hostRanges.add(version)
   }
-  assert.equal(hostVersions.size, 1, `dsh-* peers disagree: ${[...hostVersions].join(', ')}`)
-  assert.match([...hostVersions][0], /^\d+\.\d+\.\d+(?:-[a-z]+\.\d+)?$/, 'pinned to an exact DSH version')
+  assert.equal(hostRanges.size, 1, `dsh-* peers disagree: ${[...hostRanges].join(', ')}`)
+  const range = [...hostRanges][0]
+  const versions = range.split(/\s*\|\|\s*/)
+  assert.ok(versions.length >= 2, `range should cover several DSH versions, got: ${range}`)
+  for (const v of versions) {
+    assert.match(v, /^\d+\.\d+\.\d+(?:-[a-z]+\.\d+)?$/, `range term not an exact DSH version: ${v}`)
+  }
 })
 
 test('all top-level settings written by the full-config endpoint are volatile', () => {
