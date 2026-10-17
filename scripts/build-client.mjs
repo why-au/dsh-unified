@@ -3,7 +3,7 @@
 import { readFile, writeFile } from 'node:fs/promises'
 const root = new URL('../', import.meta.url)
 const pkg = JSON.parse(await readFile(new URL('package.json', root), 'utf8'))
-const sources = await Promise.all(['lib/client.js', 'lib/panel-client.js'].map(async (path) => {
+const sources = await Promise.all(['lib/client.js', 'lib/panel-client.js', 'lib/quota-client.js'].map(async (path) => {
   const source = await readFile(new URL(path, root), 'utf8')
   if (!source.includes('window.__ModuleLoader__.load(')) throw new Error(`Missing module factory: ${path}`)
   return source.replace('window.__ModuleLoader__.load(', 'register(')

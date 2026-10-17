@@ -76,7 +76,7 @@ Get-CimInstance Win32_Process -Filter "Name='DeepSeek Harness.exe'" |
 dsh plugin --profile desktop remove dsh-unified-channels
 
 # 2) 装入本插件（按你的实际产物路径）
-dsh plugin --profile desktop add D:\work\plugin\dsh-unified-dsh-plugin-0.1.5.tgz
+dsh plugin --profile desktop add D:\work\plugin\dsh-unified-dsh-plugin-0.1.6.tgz
 
 # 3) 核对：应只剩 id: dsh-unified，不再有四个上游条目
 dsh --profile desktop --dump-config | Select-String 'dsh-unified|dsh-connect|llm-subscriptions|opencode2dsh'
@@ -103,13 +103,17 @@ dsh --profile desktop --dump-config | Select-String 'dsh-unified|dsh-connect|llm
 
 若显示 `unavailable: fetch failed` → 说明 provider 未注册，见下方「排错」。
 
-### 3. 模型选择器
+### 3. 订阅用量条（0.1.6 新增，需验收）
+
+订阅配置页「输入框额度指示器」默认选择「当前订阅 · 多窗口与重置倒计时」。重新登录订阅后，选中该订阅模型，输入框下方统计行应显示订阅名称、已用百分比、可用的重置倒计时。也可改为「全部订阅」，在使用 WorkBuddy 等模型时继续查看所有订阅。点击徽标展开账号与采样时间；无额度数据应显示「额度未知」。这部分已通过离线组件和数据测试，尚未在你的 desktop 中安装/视觉验收。
+
+### 4. 模型选择器
 Model 选择器中应能看到 WorkBuddy 的模型；本插件不改变宿主模型选择器位置。
 
-### 4. 重新登录订阅渠道
+### 5. 重新登录订阅渠道
 在插件配置页登录 Codex / Claude / 等（**这是预期内的重登**，不是故障）。
 
-### 5. 确认旧入口已消失
+### 6. 确认旧入口已消失
 - 旧插件的设置卡片/路由不再出现；
 - 访问 `/dsh-subscriptions/health` 仍可用（本插件沿用该命名空间作兼容）。
 

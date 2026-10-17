@@ -92,6 +92,7 @@ test('client registers unified bundle/row seats and disposes all UI seats', () =
   assert.ok(rows.some((r) => r.name === 'plugins.item' && r.id === 'dsh-unified'))
   assert.ok(rows.some((r) => r.name === 'conversation.session.header.actions'))
   assert.ok(rows.some((r) => r.name === 'conversation.input.right'))
+  assert.ok(rows.some((r) => r.name === 'conversation.composer.dock' && r.id === 'dsh-unified-subscription-usage'))
   assert.ok(rows.some((r) => r.name === 'sidebar.footer.action' && r.id === 'connect-hub'), 'composed entry must apply the channel hub too')
   assert.equal(locales.size, 3)
   for (const off of effects.reverse()) off()

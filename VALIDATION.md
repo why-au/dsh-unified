@@ -1,5 +1,15 @@
 # Local validation — 2026-10-16
 
+## 0.1.6 composer quota addition (2026-10-17)
+
+- Added a third composed client contribution on `conversation.composer.dock`, portalling into the owning composer's `[data-composer-stats]` row with bounded ancestor lookup and fallback dock rendering.
+- Default `windows` mode reads the selected model from the owning session's `modelDirectories`; `all` mode shows every configured subscription account. It never substitutes the global most-recent request for another session's selection.
+- The status route adds a privacy-projected per-account `subscriptions` array and retains window `resetAt`/model flags. No additional upstream usage calls are performed by the status route.
+- Fixed null/blank/boolean usage coercion to 0 and stopped discarding zero-percent or non-top-two model windows. Model-scoped percentages are not substituted for other models.
+- Component tests exercise stats-row portal rendering, multiple providers, unknown/zero usage, session-specific selection, polling and observer disposal. Snapshot countdown example matches `4h 59m 0% · 5d 12h 78%` (used percentages).
+- `node --test test/*.test.mjs`: **57/57 PASS**; syntax check: **116 JavaScript files PASS**. The committed browser bundle was rebuilt and tested for source equality.
+- No desktop installation or browser visual acceptance was performed for this addition. No real subscription inference/usage endpoint was exercised by these tests. Provider usage support remains conditional on the existing adapter and upstream response, not a claim of all-service coverage.
+
 ## Source and scope
 
 Initially downloaded https://github.com/why-au/dsh-unified main as a source ZIP. After installing Git, cloned the repository at baseline 18fa2be91707ebedbf9cae96052645319d0d519d and migrated the fixes to branch fix/unified-integration. Re-ran installation, tests and syntax checks in this real Git worktree before the local commit. No push, publication or changes to the running DSH installation were performed.
