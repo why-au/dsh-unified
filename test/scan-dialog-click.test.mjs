@@ -15,8 +15,16 @@ import { readFileSync } from 'node:fs'
 const src = readFileSync(new URL('../lib/panel-client.js', import.meta.url), 'utf8')
 
 test('scan dialog is nested inside its scrim, not a sibling', () => {
-  assert.match(src, /react\.createElement\(\s*"div",\s*\{ style: S\.scrimTop, onClick: onClose \},\s*react\.createElement\(/)
+  assert.match(src, /createElement\(\s*"div",\s*(?:\/\/[^\n]*\n\s*)*\{ style: S\.scrimTop \},\s*react\.createElement\(/)
   assert.ok(!/react\.createElement\(\s*react\.Fragment,\s*null,\s*react\.createElement\("div", \{ style: S\.scrim, onClick: onClose \}\)/.test(src))
+})
+
+// Reported: "clicking anything at all closes the window". The scan scrim must
+// NOT close the dialog — a stray click while waiting for the scan would lose the
+// session. Closing stays on the explicit Cancel button.
+test('the scan scrim does not close the dialog', () => {
+  assert.ok(!/style: S\.scrimTop, onClick: onClose/.test(src), 'scan scrim must not bind onClose')
+  assert.match(src, /onClick: onClose \}, t\("authCancel"\)/)
 })
 
 test('dialog swallows clicks', () => {
