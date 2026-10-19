@@ -15,8 +15,21 @@ import { readFileSync } from 'node:fs'
 const src = readFileSync(new URL('../lib/panel-client.js', import.meta.url), 'utf8')
 
 test('scan dialog is nested inside its scrim, not a sibling', () => {
-  assert.match(src, /createElement\(\s*"div",\s*(?:\/\/[^\n]*\n\s*)*\{ style: S\.scrimTop \},\s*react\.createElement\(/)
+  assert.match(src, /createElement\(\s*"div",[\s\S]{0,240}\{ id: "dsh-unified-scan", style: S\.scrimTop \},\s*react\.createElement\(/)
   assert.ok(!/react\.createElement\(\s*react\.Fragment,\s*null,\s*react\.createElement\("div", \{ style: S\.scrim, onClick: onClose \}\)/.test(src))
+})
+
+// Root cause of "it still disappears": the channel hub listens for mousedown on
+// the document and closes the whole panel for any click that is not inside the
+// sidebar button or #dsh-unified-panel. The scan dialog is portaled to <body>,
+// so every click inside it counted as "outside" and unmounted the panel.
+test('the hub outside-click handler ignores the portaled scan dialog', () => {
+  assert.match(src, /const scanNode = document\.getElementById\("dsh-unified-scan"\)/)
+  assert.match(src, /if \(scanNode !== null && scanNode\.contains\(event\.target\)\) return;/)
+  // Same for Escape: the hub's document keydown must not close the panel while
+  // the dialog is up, so the dialog claims Escape in the capture phase.
+  assert.match(src, /document\.addEventListener\("keydown", onKey, true\)/)
+  assert.match(src, /event\.stopPropagation\(\);/)
 })
 
 // Reported: "clicking anything at all closes the window". The scan scrim must
