@@ -30,3 +30,19 @@ test('dialog and its scrim sit above every host overlay', () => {
   // The hub dialog keeps its own, much lower scrim: do not raise it.
   assert.match(src, /scrim: \{ position: "fixed", inset: 0, zIndex: 9998, background: "transparent" \}/)
 })
+
+// Reported as "the dialog's contents cannot be clicked, there is no navigation":
+// the Electron main window has no window.open handler, so opening the auth URL
+// was silently swallowed. The button now falls back to copying the URL, and the
+// URL itself is a real anchor so it can be opened via right-click / middle-click.
+test('opening the auth URL falls back to copying when the popup is blocked', () => {
+  assert.match(src, /const openUrl = async \(\) => \{/)
+  assert.match(src, /const win = window\.open\(url, "_blank", "noopener,noreferrer"\)/)
+  assert.match(src, /opened = win !== null && win !== undefined/)
+  assert.match(src, /if \(opened\) return;/)
+  assert.match(src, /await navigator\.clipboard\.writeText\(url\)/)
+})
+
+test('the auth URL renders as an anchor, not plain text', () => {
+  assert.match(src, /react\.createElement\(\s*"a",\s*\{\s*href: authUrl,\s*target: "_blank",\s*rel: "noopener noreferrer"/)
+})
