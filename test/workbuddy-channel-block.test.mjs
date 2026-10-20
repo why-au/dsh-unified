@@ -18,7 +18,11 @@ const body = JSON.stringify({
 })
 
 function client() {
-  return new WorkBuddyUpstreamClient({ resolveChatIdentity: async () => ({ clientVersion: '5.5.6' }) })
+  return new WorkBuddyUpstreamClient({
+    resolveChatIdentity: async () => ({ clientVersion: '5.5.6' }),
+    // Real schedule is 2s/5s/10s; keep tests fast.
+    channelBlockDelaysMs: [1, 1, 1],
+  })
 }
 
 function blockResponse() {
@@ -64,7 +68,7 @@ test('a transient 11128 block is retried and the turn succeeds', async () => {
   assert.equal(calls, 2, 'exactly one retry after the block')
 })
 
-test('11128 is retried at most twice, then reported', async () => {
+test('11128 is retried a bounded number of times, then reported with a hint', async () => {
   let calls = 0
   const result = await withFetch(async () => {
     calls++
@@ -72,8 +76,10 @@ test('11128 is retried at most twice, then reported', async () => {
   }, () => client().chatStream(credential, body))
 
   assert.equal(result.ok, false)
-  assert.equal(calls, 3, 'initial attempt + 2 retries')
+  assert.equal(calls, 4, 'initial attempt + 3 retries')
   assert.match(result.message, /11128/)
+  // The exhausted path tells the user what to do (switch egress / retry later).
+  assert.match(result.message, /换一个代理节点/)
 })
 
 test('deterministic 400s are NOT retried', async () => {
