@@ -1,6 +1,6 @@
 {
   "name": "@dsh-unified/dsh-plugin",
-  "version": "0.1.23",
+  "version": "0.1.27",
   "description": "DSH plugin integrating subscription, API-key and IDE model channels with multi-account rotation and a unified channel panel. Provider availability and authentication support vary by deployment.",
   "type": "module",
   "main": "./lib/index.js",
@@ -11,11 +11,20 @@
     "./cordis.patch.yml": "./cordis.patch.yml"
   },
   "dsh": {
-    "bundle": { "patch": "./cordis.patch.yml" },
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
     "client": {
       "platform": "web",
-      "inject": ["@deepseek-ai/dsh-client-ui-renderer", "@deepseek-ai/dsh-client-locale", "@deepseek-ai/dsh-api-session-controller"],
-      "external": ["react", "react-dom"]
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-renderer",
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-api-session-controller"
+      ],
+      "external": [
+        "react",
+        "react-dom"
+      ]
     }
   },
   "license": "MIT",
