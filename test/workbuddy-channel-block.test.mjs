@@ -92,3 +92,50 @@ test('deterministic 400s are NOT retried', async () => {
   assert.equal(result.ok, false)
   assert.equal(calls, 1, '11133 must surface immediately')
 })
+
+function restrictedResponse() {
+  return new Response(
+    JSON.stringify({
+      code: 11140,
+      msg: 'request illegal',
+      displayMsg: { en: 'Your account has been restricted due to unusual activity' },
+    }),
+    { status: 403, headers: { 'content-type': 'application/json' } },
+  )
+}
+
+// 11140 is the stage after repeated 11128: a per-account restriction. Retrying
+// cannot clear it and would deepen the flag, so it must surface immediately with
+// an explanation the user can act on.
+test('a restricted account is not retried and explains the cause', async () => {
+  let calls = 0
+  const result = await withFetch(async () => {
+    calls++
+    return restrictedResponse()
+  }, () => client().chatStream(credential, body))
+
+  assert.equal(result.ok, false)
+  assert.equal(calls, 1, '403/11140 must not be retried')
+  assert.match(result.message, /11140/)
+  assert.match(result.message, /官方客户端/)
+})
+
+// DSH runs subagents in parallel, so one turn can open many chat calls at once —
+// the "unusual activity" shape that escalates 11128 into 11140. The client caps
+// outstanding requests instead of forwarding the burst.
+test('outstanding chat requests are capped', async () => {
+  let active = 0
+  let peak = 0
+  const stub = async () => {
+    active++
+    peak = Math.max(peak, active)
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    active--
+    return okResponse()
+  }
+  await withFetch(stub, async () => {
+    const c = client()
+    await Promise.all(Array.from({ length: 8 }, () => c.chatStream(credential, body)))
+  })
+  assert.ok(peak <= 3, `peak concurrency ${peak} should stay <= 3`)
+})
